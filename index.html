@@ -29,7 +29,7 @@
     start.addEventListener("click", async (e) => {
             e.preventDefault();
             start.style.display="none";
-            socket = io("http://localhost:5000");
+            socket = io("https://coderant.onrender.com");
 
             
             socket.on("Game Status", (msg) => {
