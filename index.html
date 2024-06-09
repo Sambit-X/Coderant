@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="https://placehold.co/16">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeRant</title>
+</head>
+<body>
+    <Button id="start">Start</Button>
+    <div id="question" style="display: none"><h1>Question</h1>
+        <p id="statement"></p>
+        <textarea id="answer"></textarea>
+        <Button id="submit">Submit</Button>
+    </div>
+    <p id="result"></p>
+    
+</body>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    let socket=null;
+    const start=document.querySelector("#start");
+    const question=document.querySelector("#question");
+    const statement=document.querySelector("#statement");
+    const answer=document.querySelector("#answer");
+    const submit=document.querySelector("#submit");
+    const result=document.querySelector("#result");
+
+    start.addEventListener("click", async (e) => {
+            e.preventDefault();
+            start.style.display="none";
+            socket = io("http://localhost:5000");
+
+            
+            socket.on("Game Status", (msg) => {
+                result.innerText="";
+                if(msg.status=="Game Starting"){ 
+                    console.log("Rendering Question");
+                    question.style.display="contents";
+                    statement.innerText=msg.question;
+                    submit.addEventListener("click", async ()=>{
+                        const submittedAnswer = answer.value.trim();
+                        socket.emit("Submit Answer", submittedAnswer,socket.id);
+                        
+                    })   
+                }
+                else{
+                    result.innerText=msg;
+                    console.log(msg);
+                }
+            });
+            socket.on("Game Result",(msg)=>{
+                question.style.display="None";
+                result.innerText=msg;
+                console.log(msg);
+            })
+            
+        }
+    );
+
+    
+</script>
+</html>
