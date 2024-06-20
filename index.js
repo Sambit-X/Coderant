@@ -13,8 +13,9 @@ app.use(cors())
 
 
 //Mongo DB Connection
+const uri="mongodb+srv://sambitmondal02:JDLR8Q3ZIqKR8GLt@cluster0.zuxdug7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-const client = new MongoClient(process.env.MONGO_URI);
+const client = new MongoClient(uri);
 client.connect(() => {
     console.log("MongoDB Connection Success!");
 });
@@ -27,7 +28,7 @@ const collection = db.collection('users');
 const server = createServer(app)
 const io = new Server(server, {
     cors: {
-        header: "http://localhost:5000"
+        header: "https://coderant.onrender.com"
     }
 });
 
