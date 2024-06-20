@@ -27,7 +27,7 @@ const collection = db.collection('users');
 const server = createServer(app)
 const io = new Server(server, {
     cors: {
-        header: "http://localhost:5000"
+        header: "https://coderant.onrender.com"
     }
 });
 
