@@ -45,7 +45,7 @@
             console.log(Clerk.user)
             const userButtonDiv = document.getElementById("user-button");
             Clerk.mountUserButton(userButtonDiv);
-            const response = await fetch('http://localhost:5000/signup', {
+            const response = await fetch('https://coderant.onrender.com/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,7 +71,7 @@
     start.addEventListener("click", async (e) => {
         e.preventDefault();
         start.style.display = "none";
-        socket = io("http://localhost:5000");
+        socket = io("https://coderant.onrender.com");
 
 
         socket.emit('user', { clerk_id: Clerk.user.id, username: Clerk.user.username });
