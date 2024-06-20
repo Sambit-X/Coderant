@@ -14,7 +14,7 @@ app.use(cors())
 
 //Mongo DB Connection
 
-const client = new MongoClient(process.env.MONGO_URI);
+const client = new MongoClient("mongodb+srv://sambitmondal02:JDLR8Q3ZIqKR8GLt@cluster0.zuxdug7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
 client.connect(() => {
     console.log("MongoDB Connection Success!");
 });
