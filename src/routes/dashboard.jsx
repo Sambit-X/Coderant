@@ -3,13 +3,15 @@ import { UserButton, useUser } from '@clerk/clerk-react';
 import io from 'socket.io-client'; // Import socket.io-client
 
 export default function DashboardPage() {
+  const BACKEND_SERVER = import.meta.env.VITE_BACKEND_SERVER
+
   const { user } = useUser();
   const [socket, setSocket] = useState(null);
   const [status, setStatus] = useState('');
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io("http://localhost:3000");
+    const socketInstance = io(BACKEND_SERVER);
     setSocket(socketInstance);
 
     // Cleanup on component unmount
