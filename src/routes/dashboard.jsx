@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import io from 'socket.io-client';
+import MonacoEditor from '@monaco-editor/react';
 
 export default function DashboardPage() {
   const BACKEND_SERVER = import.meta.env.VITE_BACKEND_SERVER;
@@ -11,47 +12,56 @@ export default function DashboardPage() {
   const [question, setQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState('');
+  const [output, setOutput] = useState('Output is Shown here');
+  const [islanguage, setLanguage] = useState("java");
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    // Initialize socket connection
     const socketInstance = io(BACKEND_SERVER);
     setSocket(socketInstance);
 
     socketInstance.on('status', (msg) => {
-      console.log(msg.body);
-      setStatus(msg.body);
-      setQuestion(msg.question);
-      if (msg.body === "Match Started") {
-        setIsPlaying(true);
+      if (msg) {
+        console.log(msg.body);
+        setStatus(msg.body);
+        setQuestion(msg.question);
+        if (msg.body === "Match Started") {
+          setIsPlaying(true);
+        }
       }
     });
 
-    socketInstance.on('result', (msg,code) => {
+    socketInstance.on('showOutput', (msg) => {
+      console.log(msg)
+      if (msg) {
+        setOutput(msg);
+      }
+    });
+
+    socketInstance.on('result', (msg, code) => {
       console.log(code);
-      setStatus(msg)
-      if(code!==2){
-        setStatus('')
+      setStatus(msg);
+      if (code !== 2) {
+        setStatus('');
         setResult(msg);
         setIsPlaying(false);
         setQuestion(null);
         setAnswer('');
       }
-      if(code===1){
-        console.log(user.id)
+      if (code === 1) {
+        console.log(user.id);
       }
     });
 
-    // Cleanup on component unmount
     return () => {
       if (socketInstance) {
         socketInstance.disconnect();
       }
     };
-  }, [BACKEND_SERVER]);
+  }, [BACKEND_SERVER, user]);
 
-  const handleChange = (e) => {
-    setAnswer(e.target.value);
+  const handleChange = (value) => {
+    setAnswer(value);
   };
 
   const findPlayerButton = (e) => {
@@ -62,10 +72,17 @@ export default function DashboardPage() {
     }
   };
 
+  const runButton = (e) => {
+    e.preventDefault();
+    if (socket) {
+      socket.emit('runAnswer', answer, islanguage);
+    }
+  };
+
   const submitButton = (e) => {
     e.preventDefault();
     if (socket) {
-      socket.emit('submitAnswer', answer);
+      socket.emit('submitAnswer', answer, islanguage);
     }
   };
 
@@ -89,8 +106,33 @@ export default function DashboardPage() {
       {isPlaying && question && (
         <div className="mt-4">
           <p className="lead">{question}</p>
-          <textarea value={answer} onChange={handleChange} className="form-control mb-2" rows="4"></textarea>
-          <button onClick={submitButton} className="btn btn-success">Submit</button>
+          <select
+            value={islanguage}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="form-select mb-2"
+          >
+            <option value="java">Java</option>
+            {/* <option value="python">Python</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option> */}
+          </select>
+          <MonacoEditor
+            height="400px"
+            width="800px"
+            language={islanguage}
+            value={answer}
+            onChange={handleChange}
+            theme="vs-dark"
+            options={{
+              minimap: { enabled: false },
+              lineNumbers: 'on',
+              fontSize: 14,
+              scrollBeyondLastLine: false,
+            }}
+          />
+          <p className="lead">{output}</p>
+          <button onClick={runButton} className="btn btn-success mt-2">Run</button>
+          <button onClick={submitButton} className="btn btn-success mt-2">Submit</button>
         </div>
       )}
       {!isPlaying && result && <p className="lead">{result}</p>}

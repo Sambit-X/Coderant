@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const { execJava } = require('./code.js');
 
 const io = require('socket.io')(3000, {
   cors: {
@@ -27,7 +28,7 @@ io.on('connection', async socket => {
       const a = Math.floor(Math.random() * 10);
       const b = Math.floor(Math.random() * 10);
       correctAnswer = a + b;
-      roomToJoin.question=`What is ${a} + ${b}?`
+      roomToJoin.question=`Write a function to find the sum of ${a} and ${b}.`
       roomToJoin.answer=correctAnswer;
       io.to(roomToJoin.id).emit('status',{body: "Match Started", question:roomToJoin.question});
     }
@@ -35,20 +36,39 @@ io.on('connection', async socket => {
       io.to(roomToJoin.id).emit('status',{body: "Finding Players"});
     }
 
-    socket.on("submitAnswer", (answer) => {
+    socket.on("runAnswer", (answer,language) => {
+      if(language=="java"){
+        execJava(answer)
+        .then(output => {
+          io.to(socket.id).emit('showOutput', output);
+        })
+      }
+      
+    });
+
+    socket.on("submitAnswer", (answer, language) => {
       const room = rooms[roomToJoin.id];
       if (!room || room.winnerDeclared) return;
-      if (parseInt(answer, 10) === room.answer) {
-        io.to(socket.id).emit('result', 'You win!',1);
-        room.players.forEach(playerId => {
-          if (playerId !== socket.id) {
-            io.to(playerId).emit('result', 'You lose!',0);
+      if(language=="java"){
+        execJava(answer)
+        .then(output => {
+          console.log(output.trim(),typeof(output.trim())," ",room.answer,typeof(room.answer))
+          if (output.trim()== room.answer) {
+            
+            io.to(socket.id).emit('result', 'You win!',1);
+            room.players.forEach(playerId => {
+              if (playerId !== socket.id) {
+                io.to(playerId).emit('result', 'You lose!',0);
+              }
+            });
+            room.winner = socket.id; // Declare the winner
+          } else {
+            socket.emit('result', 'Wrong answer, try again!',2);
           }
-        });
-        room.winner = socket.id; // Declare the winner
-      } else {
-        socket.emit('result', 'Wrong answer, try again!',2);
+        })
       }
+      
+
       console.log(room);
     });
   
